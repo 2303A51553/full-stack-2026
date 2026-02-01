@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Registration Form1</title>
+</head>
+<body>
+
+    <h1>Employee Registration Form</h1>
+    <hr>
+
+    <form action="submit_employee" method="post" enctype="multipart/form-data">
+
+        <!-- Personal Information -->
+        <fieldset>
+            <legend>Personal Information</legend>
+
+            <label for="empid">Employee ID:</label>
+            <input type="text" id="empid" name="empid" required><br><br>
+
+            <label for="fname">First Name:</label>
+            <input type="text" id="fname" name="fname" required><br><br>
+
+            <label for="lname">Last Name:</label>
+            <input type="text" id="lname" name="lname" required><br><br>
+
+            <label for="dob">Date of Birth:</label>
+            <input type="date" id="dob" name="dob" required><br><br>
+
+            <label for="gender">Gender:</label><br>
+            <input type="radio" id="male" name="gender" value="Male">
+            <label for="male">Male</label><br>
+            <input type="radio" id="female" name="gender" value="Female">
+            <label for="female">Female</label><br>
+            <input type="radio" id="other" name="gender" value="Other">
+            <label for="other">Other</label><br><br>
+        </fieldset>
+
+        <!-- Contact Information -->
+        <fieldset>
+            <legend>Contact Information</legend>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required><br><br>
+
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" required><br><br>
+
+            <label for="address">Address:</label><br>
+            <textarea id="address" name="address" rows="4" cols="40"></textarea><br><br>
+        </fieldset>
+
+        <!-- Job Information -->
+        <fieldset>
+            <legend>Job Information</legend>
+
+            <label for="department">Department:</label>
+            <select id="department" name="department" required>
+                <option value="">--Select Department--</option>
+                <option value="HR">Human Resources</option>
+                <option value="Finance">Finance</option>
+                <option value="IT">Information Technology</option>
+                <option value="Sales">Sales</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Operations">Operations</option>
+            </select><br><br>
+
+            <label for="designation">Designation:</label>
+            <input type="text" id="designation" name="designation" required><br><br>
+
+            <label for="doj">Date of Joining:</label>
+            <input type="date" id="doj" name="doj" required><br><br>
+
+            <label for="employment_type">Employment Type:</label><br>
+            <input type="radio" id="fulltime" name="employment_type" value="Full-Time">
+            <label for="fulltime">Full-Time</label><br>
+            <input type="radio" id="parttime" name="employment_type" value="Part-Time">
+            <label for="parttime">Part-Time</label><br>
+            <input type="radio" id="contract" name="employment_type" value="Contract">
+            <label for="contract">Contract</label><br><br>
+
+            <label for="salary">Salary:</label>
+            <input type="number" id="salary" name="salary" step="0.01" required><br><br>
+
+            <label for="skills">Skills:</label><br>
+            <input type="checkbox" id="communication" name="skills" value="Communication">
+            <label for="communication">Communication</label><br>
+            <input type="checkbox" id="leadership" name="skills" value="Leadership">
+            <label for="leadership">Leadership</label><br>
+            <input type="checkbox" id="technical" name="skills" value="Technical">
+            <label for="technical">Technical</label><br>
+            <input type="checkbox" id="management" name="skills" value="Management">
+            <label for="management">Management</label><br><br>
+        </fieldset>
+
+        <!-- Emergency Contact -->
+        <fieldset>
+            <legend>Emergency Contact</legend>
+
+            <label for="emergency_name">Contact Name:</label>
+            <input type="text" id="emergency_name" name="emergency_name" required><br><br>
+
+            <label for="emergency_relation">Relation:</label>
+            <input type="text" id="emergency_relation" name="emergency_relation" required><br><br>
+
+            <label for="emergency_phone">Phone Number:</label>
+            <input type="tel" id="emergency_phone" name="emergency_phone" required><br><br>
+        </fieldset>
+
+        <!-- File Upload -->
+        <fieldset>
+            <legend>Upload Documents</legend>
+            <label for="photo">Upload Photo:</label>
+            <input type="file" id="photo" name="photo" accept="image/*"><br><br>
+
+            <label for="resume">Upload Resume:</label>
+            <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx"><br><br>
+        </fieldset>
+
+        <!-- Submit and Reset -->
+        <input type="submit" value="Register">
+        <input type="reset" value="Clear Form">
+
+    </form>
+
+</body>
+</html>
