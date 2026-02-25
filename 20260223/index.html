@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Lending System</title>
+</head>
+<body>
+
+<h1>Book Lending System</h1>
+
+<h3>Lend a Book</h3>
+
+<form action="/lend" method="POST">
+
+    <label>Book Title:</label><br>
+    <input type="text" name="bookTitle" required><br><br>
+
+    <label>Borrower Name:</label><br>
+    <input type="text" name="borrowerName" required><br><br>
+
+    <label>Due Date:</label><br>
+    <input type="date" name="dueDate" required><br><br>
+
+    <button type="submit">Lend Book</button>
+
+</form>
+
+<br><br>
+
+<a href="/lend">View Lending Records</a>
+
+</body>
+</html>
