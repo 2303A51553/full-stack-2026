@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATSM Control · Traffic Intelligence Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080F;--surface:#0D1117;--surface2:#141B26;--surface3:#1C2535;
+  --accent:#00FFB3;--accent2:#4D9CFF;--danger:#FF3860;--warn:#FFAA00;--purple:#9B5CF6;
+  --text:#E2EAFF;--muted:#4E6280;--border:rgba(255,255,255,0.06);
+  --font:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:rgba(0,255,179,0.08);--b:rgba(77,156,255,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;height:100vh}
+.page{display:none;width:100%;height:100%}
+.page.active{display:flex}
+
+/* ── GRID BG ── */
+.grid-bg{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(0,255,179,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,179,0.03) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none}
+
+/* ── LOGIN ── */
+#login-page{align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden}
+.login-glow{position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,255,179,0.05) 0%,transparent 65%);
+  top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:44px 52px;width:420px;position:relative;z-index:2;
+  box-shadow:0 40px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(0,255,179,0.05)}
+.login-logo{display:flex;align-items:center;gap:14px;margin-bottom:36px;justify-content:center}
+.logo-hex{width:48px;height:48px;background:linear-gradient(135deg,var(--accent),#00CC8F);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-hex svg{width:22px;height:22px}
+.login-title{font-size:24px;font-weight:700;letter-spacing:-0.5px}
+.login-sub{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+.login-label{font-size:11px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;display:block}
+.login-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;
+  color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border 0.2s,box-shadow 0.2s}
+.login-input:focus{border-color:rgba(0,255,179,0.3);box-shadow:0 0 0 3px rgba(0,255,179,0.06)}
+.login-group{margin-bottom:20px}
+.login-btn{width:100%;background:linear-gradient(135deg,var(--accent),#00CC8F);color:#06080F;border:none;border-radius:10px;
+  padding:15px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.3px;
+  transition:opacity 0.2s,transform 0.1s,box-shadow 0.2s;margin-top:8px;
+  box-shadow:0 8px 32px rgba(0,255,179,0.2)}
+.login-btn:hover{opacity:0.9;box-shadow:0 12px 40px rgba(0,255,179,0.3)}
+.login-btn:active{transform:scale(0.99)}
+.login-err{color:var(--danger);font-size:12px;margin-top:-12px;margin-bottom:12px;display:none;font-family:var(--mono)}
+
+/* ── APP SHELL ── */
+#app-page{flex-direction:row;height:100vh}
+.sidebar{width:230px;min-width:230px;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column}
+.sidebar-logo{padding:22px 18px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-hex-sm{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),#00CC8F);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-hex-sm svg{width:15px;height:15px}
+.brand{font-size:14px;font-weight:700;color:var(--text)}
+.brand span{color:var(--accent)}
+.nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:3px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:10px;cursor:pointer;
+  font-size:13px;color:var(--muted);transition:all 0.15s;border:none;background:transparent;
+  font-family:var(--font);width:100%;text-align:left}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(0,255,179,0.08);color:var(--accent);border:1px solid rgba(0,255,179,0.12)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.nav-section{font-size:10px;letter-spacing:2px;color:var(--muted);padding:14px 13px 5px;text-transform:uppercase}
+.sidebar-bottom{padding:12px 10px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+  background:var(--surface2);border:1px solid var(--border)}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#00CC8F);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#06080F;flex-shrink:0}
+.user-info .name{font-size:12px;font-weight:600}
+.user-info .role{font-size:10px;color:var(--muted)}
+.logout-btn{display:flex;align-items:center;gap:8px;width:100%;padding:9px 13px;border:none;background:transparent;
+  color:var(--muted);font-family:var(--font);font-size:12px;cursor:pointer;border-radius:10px;
+  margin-top:4px;transition:all 0.15s}
+.logout-btn:hover{background:rgba(255,56,96,0.08);color:var(--danger)}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column;min-width:0}
+.topbar{padding:16px 26px;border-bottom:1px solid var(--border);background:var(--surface);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-size:16px;font-weight:700;letter-spacing:-0.3px}
+.page-sub{font-size:11px;color:var(--muted);margin-top:2px}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,255,179,0.4)}50%{opacity:0.5;box-shadow:0 0 0 5px rgba(0,255,179,0)}}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;margin-right:6px;animation:pulse 2s infinite}
+.live-badge{font-size:11px;color:var(--accent);font-family:var(--mono);display:flex;align-items:center}
+.main{padding:20px 26px;flex:1}
+.view{display:none}
+.view.active{display:block}
+
+/* ── METRIC CARDS ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;
+  position:relative;overflow:hidden}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:14px 14px 0 0}
+.metric-card.green::before{background:var(--accent)}
+.metric-card.blue::before{background:var(--accent2)}
+.metric-card.warn::before{background:var(--warn)}
+.metric-card.danger::before{background:var(--danger)}
+.metric-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;flex-shrink:0}
+.metric-card.green .metric-icon{background:rgba(0,255,179,0.1)}
+.metric-card.blue .metric-icon{background:rgba(77,156,255,0.1)}
+.metric-card.warn .metric-icon{background:rgba(255,170,0,0.1)}
+.metric-card.danger .metric-icon{background:rgba(255,56,96,0.1)}
+.metric-label{font-size:11px;color:var(--muted);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase}
+.metric-val{font-size:28px;font-weight:700;font-family:var(--mono);line-height:1}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:5px}
+.metric-card.green .metric-val{color:var(--accent)}
+.metric-card.blue .metric-val{color:var(--accent2)}
+.metric-card.warn .metric-val{color:var(--warn)}
+.metric-card.danger .metric-val{color:var(--danger)}
+
+/* ── SECTION TITLE ── */
+.section-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── INTERSECTION MAP ── */
+.overview-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:14px;margin-bottom:20px}
+.map-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column}
+.map-card h3{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px}
+.intersection-svg{flex:1;display:flex;justify-content:center;align-items:center}
+
+/* ── LANE CARDS ── */
+.lanes-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.lane-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;
+  position:relative;overflow:hidden;transition:border-color 0.2s}
+.lane-card:hover{border-color:rgba(255,255,255,0.12)}
+.lane-dir-badge{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 8px;border-radius:20px;margin-bottom:10px;display:inline-block}
+.lane-dir-badge.n{background:rgba(0,255,179,0.1);color:var(--accent)}
+.lane-dir-badge.e{background:rgba(77,156,255,0.1);color:var(--accent2)}
+.lane-dir-badge.s{background:rgba(255,170,0,0.1);color:var(--warn)}
+.lane-dir-badge.w{background:rgba(155,92,246,0.1);color:var(--purple)}
+.lane-name{font-size:13px;font-weight:600;margin-bottom:12px}
+
+/* TRAFFIC LIGHT SYMBOL */
+.traffic-light{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:12px}
+.tl-housing{background:#111820;border:2px solid #1E2A3A;border-radius:12px;padding:6px 8px;
+  display:flex;flex-direction:column;gap:5px;align-items:center;position:relative}
+.tl-light{width:14px;height:14px;border-radius:50%;transition:all 0.3s}
+.tl-light.red{background:#2A0A0A}
+.tl-light.yellow{background:#2A1A00}
+.tl-light.green{background:#002A14}
+.tl-light.red.on{background:var(--danger);box-shadow:0 0 10px 3px rgba(255,56,96,0.5)}
+.tl-light.yellow.on{background:var(--warn);box-shadow:0 0 10px 3px rgba(255,170,0,0.5)}
+.tl-light.green.on{background:var(--accent);box-shadow:0 0 10px 3px rgba(0,255,179,0.5)}
+.tl-pole{width:3px;height:12px;background:#1E2A3A;margin:0 auto}
+.tl-base{width:20px;height:5px;background:#1E2A3A;border-radius:2px}
+
+.lane-pcu-row{display:flex;align-items:baseline;gap:5px;margin-bottom:4px}
+.lane-pcu{font-size:26px;font-weight:700;font-family:var(--mono)}
+.lane-unit{font-size:10px;color:var(--muted)}
+.lane-green-row{display:flex;align-items:center;justify-content:space-between;
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.green-time{font-size:18px;font-weight:700;font-family:var(--mono)}
+.green-label{font-size:10px;color:var(--muted)}
+.lane-bar{height:4px;background:var(--surface3);border-radius:2px;margin-top:8px;overflow:hidden}
+.lane-bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+
+/* VEHICLE ICONS MINI */
+.vehicle-row{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.veh-icon{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--muted);
+  background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:2px 6px}
+
+/* ── CHART ROW ── */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+.chart-card h3{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px}
+
+/* BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:10px;height:90px;padding-bottom:2px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.bar{width:100%;border-radius:5px 5px 0 0;transition:height 1s ease;min-width:20px;position:relative}
+.bar::after{content:attr(data-val);position:absolute;top:-18px;left:50%;transform:translateX(-50%);
+  font-size:10px;font-family:var(--mono);color:var(--muted);white-space:nowrap}
+.bar-lbl{font-size:10px;color:var(--muted);font-family:var(--mono);text-align:center}
+
+/* DONUT */
+.donut-row{display:flex;gap:14px;align-items:center}
+.donut-wrap{position:relative;width:80px;height:80px;flex-shrink:0}
+.donut-wrap svg{width:80px;height:80px;transform:rotate(-90deg)}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-val{font-size:16px;font-weight:700;font-family:var(--mono);line-height:1}
+.donut-sub{font-size:8px;color:var(--muted);text-align:center}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:8px}
+.dleg{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.dleg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:6px}
+.dleg-name{color:var(--muted);display:flex;align-items:center;flex:1}
+.dleg-val{font-family:var(--mono);font-size:12px}
+
+/* ── LIVE SIGNALS TABLE ── */
+.pcu-table{width:100%;border-collapse:collapse;font-size:13px}
+.pcu-table th{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);
+  text-align:left;padding:10px 14px;border-bottom:1px solid var(--border)}
+.pcu-table td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text)}
+.pcu-table tr:last-child td{border-bottom:none}
+.pcu-table tr:hover td{background:rgba(255,255,255,0.015)}
+.badge{font-size:10px;padding:3px 9px;border-radius:20px;font-family:var(--mono);font-weight:500}
+.badge.low{background:rgba(0,255,179,0.1);color:var(--accent)}
+.badge.med{background:rgba(255,170,0,0.1);color:var(--warn)}
+.badge.high{background:rgba(255,56,96,0.1);color:var(--danger)}
+
+/* SIGNAL INDICATOR */
+.sig-indicator{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:13px}
+.sig-dot{width:10px;height:10px;border-radius:50%}
+
+/* ── VEHICLES VIEW ── */
+.veh-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.feed-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+.feed-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.feed-title{font-size:13px;font-weight:600}
+.feed-cam{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+
+/* VEHICLE TYPE BARS */
+.vtype-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.vtype-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.vtype-label{font-size:12px;flex:1}
+.vtype-bar{flex:2;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.vtype-bar-fill{height:100%;border-radius:3px;transition:width 0.8s ease}
+.vtype-count{font-size:12px;font-family:var(--mono);color:var(--muted);width:24px;text-align:right}
+
+/* CONFIDENCE RING */
+.conf-wrap{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.conf-ring{width:44px;height:44px;flex-shrink:0}
+.conf-info{flex:1}
+.conf-val{font-size:16px;font-weight:700;font-family:var(--mono);color:var(--accent)}
+.conf-label{font-size:10px;color:var(--muted)}
+.centroid-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.ctag{font-size:9px;font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);
+  border-radius:4px;padding:2px 5px;color:var(--muted)}
+
+/* ── ALERTS ── */
+.alert{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-radius:10px;
+  margin-bottom:8px;border:1px solid;transition:border-color 0.2s}
+.alert:hover{border-color:rgba(255,255,255,0.12)}
+.alert.warn{background:rgba(255,170,0,0.04);border-color:rgba(255,170,0,0.12)}
+.alert.info{background:rgba(77,156,255,0.04);border-color:rgba(77,156,255,0.12)}
+.alert.ok{background:rgba(0,255,179,0.04);border-color:rgba(0,255,179,0.12)}
+.alert.danger{background:rgba(255,56,96,0.04);border-color:rgba(255,56,96,0.12)}
+.alert-icon-wrap{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.alert.ok .alert-icon-wrap{background:rgba(0,255,179,0.1)}
+.alert.warn .alert-icon-wrap{background:rgba(255,170,0,0.1)}
+.alert.info .alert-icon-wrap{background:rgba(77,156,255,0.1)}
+.alert.danger .alert-icon-wrap{background:rgba(255,56,96,0.1)}
+.alert-icon-wrap svg{width:15px;height:15px}
+.alert.ok .alert-icon-wrap svg{stroke:var(--accent)}
+.alert.warn .alert-icon-wrap svg{stroke:var(--warn)}
+.alert.info .alert-icon-wrap svg{stroke:var(--accent2)}
+.alert.danger .alert-icon-wrap svg{stroke:var(--danger)}
+.alert-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.alert-body{font-size:12px;color:var(--muted);line-height:1.5}
+.alert-time{font-size:10px;color:var(--muted);font-family:var(--mono);margin-left:auto;flex-shrink:0;white-space:nowrap}
+
+/* ── SETTINGS ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.setting-group{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+.setting-group h3{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.03)}
+.setting-row:last-child{border-bottom:none}
+.setting-name{font-size:13px;font-weight:500}
+.setting-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.toggle{width:38px;height:22px;background:var(--surface3);border-radius:11px;cursor:pointer;
+  position:relative;border:none;flex-shrink:0;transition:background 0.2s}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:white;border-radius:50%;
+  top:3px;left:3px;transition:transform 0.2s}
+.toggle.on::after{transform:translateX(16px)}
+.number-input{background:var(--surface2);border:1px solid var(--border);border-radius:7px;
+  padding:7px 11px;color:var(--text);font-family:var(--mono);font-size:13px;width:72px;outline:none;
+  transition:border-color 0.2s}
+.number-input:focus{border-color:rgba(0,255,179,0.3)}
+
+/* ── LOGOUT ── */
+#logout-page{background:var(--bg);align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden}
+.logout-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:52px;
+  text-align:center;position:relative;z-index:2;max-width:380px;
+  box-shadow:0 40px 80px rgba(0,0,0,0.5)}
+.logout-icon{width:64px;height:64px;border-radius:50%;background:rgba(255,56,96,0.08);
+  border:1px solid rgba(255,56,96,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.logout-icon svg{width:28px;height:28px;stroke:var(--danger)}
+.logout-title{font-size:22px;font-weight:700;margin-bottom:8px;letter-spacing:-0.3px}
+.logout-sub{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.6}
+.btn-row{display:flex;gap:10px;justify-content:center}
+.btn-primary{background:linear-gradient(135deg,var(--danger),#CC2D4A);color:#fff;border:none;border-radius:10px;
+  padding:12px 26px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;
+  transition:opacity 0.2s;box-shadow:0 6px 20px rgba(255,56,96,0.25)}
+.btn-primary:hover{opacity:0.88}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;
+  padding:12px 26px;font-family:var(--font);font-size:13px;cursor:pointer;transition:all 0.15s}
+.btn-ghost:hover{border-color:var(--muted);color:var(--text)}
+
+/* ── SCROLLBAR ── */
+.content::-webkit-scrollbar{width:5px}
+.content::-webkit-scrollbar-track{background:transparent}
+.content::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════ LOGIN ══ -->
+<div id="login-page" class="page active">
+  <div class="grid-bg"></div>
+  <div class="login-glow"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-hex">
+        <svg viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="4" fill="#06080F"/>
+          <circle cx="11" cy="3" r="2.5" fill="#06080F"/>
+          <circle cx="11" cy="19" r="2.5" fill="#06080F"/>
+          <circle cx="3" cy="11" r="2.5" fill="#06080F"/>
+          <circle cx="19" cy="11" r="2.5" fill="#06080F"/>
+        </svg>
+      </div>
+      <div>
+        <div class="login-title">ATSM Control</div>
+        <div class="login-sub">Traffic Intelligence Hub</div>
+      </div>
+    </div>
+    <div class="login-group">
+      <label class="login-label">Operator ID</label>
+      <input class="login-input" id="uid" type="text" placeholder="admin" value="admin">
+    </div>
+    <div class="login-group">
+      <label class="login-label">Access Code</label>
+      <input class="login-input" id="pwd" type="password" placeholder="••••••••" value="1234">
+    </div>
+    <div class="login-err" id="login-err">⚠ Invalid credentials — try admin / 1234</div>
+    <button class="login-btn" onclick="doLogin()">Sign In to Dashboard →</button>
+  </div>
+  <div style="margin-top:18px;font-size:11px;color:var(--muted);position:relative;z-index:2;font-family:var(--mono)">
+    Adaptive Traffic Signal Management · YOLOv4 · Junction-04
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ APP ══ -->
+<div id="app-page" class="page">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-hex-sm">
+        <svg viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="4" fill="#06080F"/>
+          <circle cx="11" cy="3" r="2.5" fill="#06080F"/>
+          <circle cx="11" cy="19" r="2.5" fill="#06080F"/>
+          <circle cx="3" cy="11" r="2.5" fill="#06080F"/>
+          <circle cx="19" cy="11" r="2.5" fill="#06080F"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand"><span>ATSM</span> Hub</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Monitor</div>
+      <button class="nav-item active" onclick="showView('overview',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/></svg>
+        Overview
+      </button>
+      <button class="nav-item" onclick="showView('intersections',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="2.5"/><circle cx="8" cy="11" r="1.5"/><rect x="7" y="2.5" width="2" height="1"/><rect x="7" y="9" width="2" height="4"/></svg>
+        Live Signals
+      </button>
+      <button class="nav-item" onclick="showView('vehicles',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="12" height="6" rx="1.5"/><path d="M5 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/><circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/></svg>
+        Vehicle Detection
+      </button>
+      <div class="nav-section">System</div>
+      <button class="nav-item" onclick="showView('alerts',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a6 6 0 016 6v3H2V8a6 6 0 016-6z"/><path d="M6 11v1a2 2 0 004 0v-1"/></svg>
+        Alerts
+      </button>
+      <button class="nav-item" onclick="showView('settings',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>
+        Settings
+      </button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="avatar">OP</div>
+        <div class="user-info">
+          <div class="name">Operator</div>
+          <div class="role">Traffic Control</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="showLogout()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2H2v12h4M10 11l4-3-4-3M6 8h8"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="view-title">System Overview</div>
+        <div class="page-sub" id="view-sub">Real-time adaptive signal management</div>
+      </div>
+      <div class="live-badge"><span class="status-dot"></span>LIVE · Junction-04</div>
+    </div>
+    <div class="main">
+
+      <!-- ══════════ OVERVIEW ══════════ -->
+      <div class="view active" id="view-overview">
+        <!-- METRIC CARDS -->
+        <div class="metrics-grid">
+          <div class="metric-card green">
+            <div class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#00FFB3" stroke-width="1.6">
+                <path d="M9 2v14M5 10l4 4 4-4"/><path d="M3 6l6-4 6 4"/>
+              </svg>
+            </div>
+            <div class="metric-label">Efficiency Gain</div>
+            <div class="metric-val">10%</div>
+            <div class="metric-sub">vs static 120s cycle</div>
+          </div>
+          <div class="metric-card blue">
+            <div class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#4D9CFF" stroke-width="1.6">
+                <rect x="2" y="7" width="14" height="7" rx="1.5"/><path d="M5 7V5a2 2 0 014 0v2M9 7V5a2 2 0 014 0v2"/><circle cx="5.5" cy="14" r="1.5"/><circle cx="12.5" cy="14" r="1.5"/>
+              </svg>
+            </div>
+            <div class="metric-label">Total PCU Now</div>
+            <div class="metric-val">60.8</div>
+            <div class="metric-sub">all 4 lanes combined</div>
+          </div>
+          <div class="metric-card warn">
+            <div class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#FFAA00" stroke-width="1.6">
+                <circle cx="9" cy="9" r="6"/><path d="M9 5v4l2.5 2.5"/>
+              </svg>
+            </div>
+            <div class="metric-label">Cycle Time</div>
+            <div class="metric-val">107s</div>
+            <div class="metric-sub">saved 13s per cycle</div>
+          </div>
+          <div class="metric-card danger">
+            <div class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#FF3860" stroke-width="1.6">
+                <path d="M9 2l2 5h5l-4 3 1.5 5L9 12l-4.5 3L6 10 2 7h5z"/>
+              </svg>
+            </div>
+            <div class="metric-label">Max Wait Lane</div>
+            <div class="metric-val">NB</div>
+            <div class="metric-sub">55s green allocated</div>
+          </div>
+        </div>
+
+        <!-- INTERSECTION MAP + CHART -->
+        <div class="overview-grid">
+          <!-- Live intersection map -->
+          <div class="map-card">
+            <h3>🗺 Live Intersection Map · Junction-04</h3>
+            <div class="intersection-svg">
+              <svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Road background -->
+                <rect x="80" y="0" width="60" height="220" fill="#131929"/>
+                <rect x="0" y="80" width="220" height="60" fill="#131929"/>
+                <!-- Center box -->
+                <rect x="80" y="80" width="60" height="60" fill="#1A2235"/>
+                <!-- Road markings - vertical -->
+                <line x1="110" y1="5" x2="110" y2="75" stroke="#2A3A50" stroke-width="1.5" stroke-dasharray="8,6"/>
+                <line x1="110" y1="145" x2="110" y2="215" stroke="#2A3A50" stroke-width="1.5" stroke-dasharray="8,6"/>
+                <!-- Road markings - horizontal -->
+                <line x1="5" y1="110" x2="75" y2="110" stroke="#2A3A50" stroke-width="1.5" stroke-dasharray="8,6"/>
+                <line x1="145" y1="110" x2="215" y2="110" stroke="#2A3A50" stroke-width="1.5" stroke-dasharray="8,6"/>
+                <!-- Intersection center cross -->
+                <circle cx="110" cy="110" r="4" fill="#1E2A3A"/>
+
+                <!-- NORTH signal (green = active) -->
+                <rect x="97" y="24" width="16" height="40" rx="4" fill="#111820" stroke="#1E2A3A" stroke-width="1"/>
+                <circle cx="105" cy="32" r="4" fill="#2A0A0A"/>
+                <circle cx="105" cy="43" r="4" fill="#2A1A00"/>
+                <circle cx="105" cy="54" r="4" fill="#00FFB3" opacity="0.9"/>
+                <circle cx="105" cy="54" r="6" fill="none" stroke="#00FFB3" stroke-width="1" opacity="0.4"/>
+                <!-- North arrow + label -->
+                <text x="110" y="15" text-anchor="middle" font-size="9" font-family="JetBrains Mono,monospace" fill="#00FFB3" font-weight="600">N</text>
+                <text x="110" y="76" text-anchor="middle" font-size="8" font-family="JetBrains Mono,monospace" fill="#4E6280">55s</text>
+
+                <!-- SOUTH signal (red) -->
+                <rect x="107" y="155" width="16" height="40" rx="4" fill="#111820" stroke="#1E2A3A" stroke-width="1"/>
+                <circle cx="115" cy="163" r="4" fill="#FF3860" opacity="0.9"/>
+                <circle cx="115" cy="163" r="6" fill="none" stroke="#FF3860" stroke-width="1" opacity="0.4"/>
+                <circle cx="115" cy="174" r="4" fill="#2A1A00"/>
+                <circle cx="115" cy="185" r="4" fill="#002A14"/>
+                <text x="110" y="208" text-anchor="middle" font-size="9" font-family="JetBrains Mono,monospace" fill="#FFAA00" font-weight="600">S</text>
+                <text x="110" y="153" text-anchor="middle" font-size="8" font-family="JetBrains Mono,monospace" fill="#4E6280">27s</text>
+
+                <!-- EAST signal (yellow) -->
+                <rect x="155" y="97" width="40" height="16" rx="4" fill="#111820" stroke="#1E2A3A" stroke-width="1"/>
+                <circle cx="163" cy="105" r="4" fill="#2A0A0A"/>
+                <circle cx="174" cy="105" r="4" fill="#FFAA00" opacity="0.9"/>
+                <circle cx="174" cy="105" r="6" fill="none" stroke="#FFAA00" stroke-width="1" opacity="0.4"/>
+                <circle cx="185" cy="105" r="4" fill="#002A14"/>
+                <text x="207" y="112" text-anchor="middle" font-size="9" font-family="JetBrains Mono,monospace" fill="#4D9CFF" font-weight="600">E</text>
+                <text x="150" y="112" text-anchor="end" font-size="8" font-family="JetBrains Mono,monospace" fill="#4E6280">38s</text>
+
+                <!-- WEST signal (red) -->
+                <rect x="24" y="107" width="40" height="16" rx="4" fill="#111820" stroke="#1E2A3A" stroke-width="1"/>
+                <circle cx="32" cy="115" r="4" fill="#FF3860" opacity="0.9"/>
+                <circle cx="32" cy="115" r="6" fill="none" stroke="#FF3860" stroke-width="1" opacity="0.4"/>
+                <circle cx="43" cy="115" r="4" fill="#2A1A00"/>
+                <circle cx="54" cy="115" r="4" fill="#002A14"/>
+                <text x="13" y="112" text-anchor="middle" font-size="9" font-family="JetBrains Mono,monospace" fill="#9B5CF6" font-weight="600">W</text>
+                <text x="68" y="112" text-anchor="middle" font-size="8" font-family="JetBrains Mono,monospace" fill="#4E6280">21s</text>
+
+                <!-- Moving car symbols (simple) -->
+                <!-- North car going into intersection -->
+                <rect x="100" y="58" width="14" height="9" rx="2" fill="#4D9CFF" opacity="0.7"/>
+                <rect x="102" y="56" width="10" height="4" rx="1" fill="#4D9CFF" opacity="0.5"/>
+                <!-- East car -->
+                <rect x="148" y="103" width="9" height="6" rx="2" fill="#FFAA00" opacity="0.7"/>
+                <!-- PCU density dots in lanes -->
+                <circle cx="98" cy="65" r="2.5" fill="#00FFB3" opacity="0.3"/>
+                <circle cx="104" cy="72" r="2.5" fill="#00FFB3" opacity="0.4"/>
+                <circle cx="95" cy="70" r="2" fill="#00FFB3" opacity="0.25"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- PCU Donut -->
+          <div class="chart-card" style="display:flex;flex-direction:column">
+            <h3>PCU Distribution · All Lanes</h3>
+            <div class="donut-row" style="margin-top:auto;margin-bottom:auto">
+              <div class="donut-wrap">
+                <svg viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="30" stroke="#1C2535" stroke-width="10" fill="none"/>
+                  <!-- NB: 25/60.75 = 41.1% -->
+                  <circle cx="40" cy="40" r="30" stroke="#00FFB3" stroke-width="10" fill="none"
+                    stroke-dasharray="77.5 188.5" stroke-dashoffset="0"/>
+                  <!-- EB: 16.5/60.75 = 27.2% -->
+                  <circle cx="40" cy="40" r="30" stroke="#4D9CFF" stroke-width="10" fill="none"
+                    stroke-dasharray="51.2 215" stroke-dashoffset="-77.5"/>
+                  <!-- SB: 11.25/60.75 = 18.5% -->
+                  <circle cx="40" cy="40" r="30" stroke="#FFAA00" stroke-width="10" fill="none"
+                    stroke-dasharray="34.9 231.3" stroke-dashoffset="-128.7"/>
+                  <!-- WB: 8/60.75 = 13.2% -->
+                  <circle cx="40" cy="40" r="30" stroke="#9B5CF6" stroke-width="10" fill="none"
+                    stroke-dasharray="24.9 241.3" stroke-dashoffset="-163.6"/>
+                </svg>
+                <div class="donut-center">
+                  <div class="donut-val" style="color:var(--text)">60.8</div>
+                  <div class="donut-sub">PCU</div>
+                </div>
+              </div>
+              <div class="donut-legend">
+                <div class="dleg"><span class="dleg-name"><span class="dleg-dot" style="background:var(--accent)"></span>↑ Northbound</span><span class="dleg-val" style="color:var(--accent)">25</span></div>
+                <div class="dleg"><span class="dleg-name"><span class="dleg-dot" style="background:var(--accent2)"></span>→ Eastbound</span><span class="dleg-val" style="color:var(--accent2)">16.5</span></div>
+                <div class="dleg"><span class="dleg-name"><span class="dleg-dot" style="background:var(--warn)"></span>↓ Southbound</span><span class="dleg-val" style="color:var(--warn)">11.25</span></div>
+                <div class="dleg"><span class="dleg-name"><span class="dleg-dot" style="background:var(--purple)"></span>← Westbound</span><span class="dleg-val" style="color:var(--purple)">8</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LANE CARDS WITH TRAFFIC LIGHTS -->
+        <div class="section-title">Lane Performance — Real-time Signal State</div>
+        <div class="lanes-grid">
+          <!-- Northbound -->
+          <div class="lane-card">
+            <span class="lane-dir-badge n">↑ North</span>
+            <div class="lane-name">Northbound</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <div class="traffic-light">
+                <div class="tl-housing">
+                  <div class="tl-light red"></div>
+                  <div class="tl-light yellow"></div>
+                  <div class="tl-light green on"></div>
+                </div>
+                <div class="tl-pole"></div>
+                <div class="tl-base"></div>
+              </div>
+              <div>
+                <div class="lane-pcu-row">
+                  <div class="lane-pcu" style="color:var(--accent)">25</div>
+                  <div class="lane-unit">PCU</div>
+                </div>
+                <div style="font-size:10px;color:var(--muted)">🚗×10  🚛×5</div>
+              </div>
+            </div>
+            <div class="lane-green-row">
+              <div><div class="green-time" style="color:var(--accent)">55s</div><div class="green-label">Green Time</div></div>
+              <span class="badge high">Heavy</span>
+            </div>
+            <div class="lane-bar"><div class="lane-bar-fill" style="width:100%;background:var(--accent)"></div></div>
+          </div>
+          <!-- Eastbound -->
+          <div class="lane-card">
+            <span class="lane-dir-badge e">→ East</span>
+            <div class="lane-name">Eastbound</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <div class="traffic-light">
+                <div class="tl-housing">
+                  <div class="tl-light red"></div>
+                  <div class="tl-light yellow on"></div>
+                  <div class="tl-light green"></div>
+                </div>
+                <div class="tl-pole"></div>
+                <div class="tl-base"></div>
+              </div>
+              <div>
+                <div class="lane-pcu-row">
+                  <div class="lane-pcu" style="color:var(--accent2)">16.5</div>
+                  <div class="lane-unit">PCU</div>
+                </div>
+                <div style="font-size:10px;color:var(--muted)">🚗×15  🛵×2</div>
+              </div>
+            </div>
+            <div class="lane-green-row">
+              <div><div class="green-time" style="color:var(--accent2)">38s</div><div class="green-label">Green Time</div></div>
+              <span class="badge med">Moderate</span>
+            </div>
+            <div class="lane-bar"><div class="lane-bar-fill" style="width:66%;background:var(--accent2)"></div></div>
+          </div>
+          <!-- Southbound -->
+          <div class="lane-card">
+            <span class="lane-dir-badge s">↓ South</span>
+            <div class="lane-name">Southbound</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <div class="traffic-light">
+                <div class="tl-housing">
+                  <div class="tl-light red on"></div>
+                  <div class="tl-light yellow"></div>
+                  <div class="tl-light green"></div>
+                </div>
+                <div class="tl-pole"></div>
+                <div class="tl-base"></div>
+              </div>
+              <div>
+                <div class="lane-pcu-row">
+                  <div class="lane-pcu" style="color:var(--warn)">11.25</div>
+                  <div class="lane-unit">PCU</div>
+                </div>
+                <div style="font-size:10px;color:var(--muted)">🛵×7  🚛×2</div>
+              </div>
+            </div>
+            <div class="lane-green-row">
+              <div><div class="green-time" style="color:var(--warn)">27s</div><div class="green-label">Green Time</div></div>
+              <span class="badge med">Moderate</span>
+            </div>
+            <div class="lane-bar"><div class="lane-bar-fill" style="width:45%;background:var(--warn)"></div></div>
+          </div>
+          <!-- Westbound -->
+          <div class="lane-card">
+            <span class="lane-dir-badge w">← West</span>
+            <div class="lane-name">Westbound</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <div class="traffic-light">
+                <div class="tl-housing">
+                  <div class="tl-light red on"></div>
+                  <div class="tl-light yellow"></div>
+                  <div class="tl-light green"></div>
+                </div>
+                <div class="tl-pole"></div>
+                <div class="tl-base"></div>
+              </div>
+              <div>
+                <div class="lane-pcu-row">
+                  <div class="lane-pcu" style="color:var(--purple)">8</div>
+                  <div class="lane-unit">PCU</div>
+                </div>
+                <div style="font-size:10px;color:var(--muted)">🚗×8</div>
+              </div>
+            </div>
+            <div class="lane-green-row">
+              <div><div class="green-time" style="color:var(--purple)">21s</div><div class="green-label">Green Time</div></div>
+              <span class="badge low">Light</span>
+            </div>
+            <div class="lane-bar"><div class="lane-bar-fill" style="width:32%;background:var(--purple)"></div></div>
+          </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="chart-row">
+          <div class="chart-card">
+            <h3>📊 Green Time Allocation (seconds)</h3>
+            <div class="bar-chart">
+              <div class="bar-col">
+                <div class="bar-wrap"><div class="bar" style="height:100%;background:linear-gradient(180deg,rgba(0,255,179,0.9),rgba(0,255,179,0.5))" data-val="55s"></div></div>
+                <div class="bar-lbl">↑ NB</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-wrap"><div class="bar" style="height:69%;background:linear-gradient(180deg,rgba(77,156,255,0.9),rgba(77,156,255,0.5))" data-val="38s"></div></div>
+                <div class="bar-lbl">→ EB</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-wrap"><div class="bar" style="height:49%;background:linear-gradient(180deg,rgba(255,170,0,0.9),rgba(255,170,0,0.5))" data-val="27s"></div></div>
+                <div class="bar-lbl">↓ SB</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-wrap"><div class="bar" style="height:38%;background:linear-gradient(180deg,rgba(155,92,246,0.9),rgba(155,92,246,0.5))" data-val="21s"></div></div>
+                <div class="bar-lbl">← WB</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-wrap"><div class="bar" style="height:55%;background:rgba(255,255,255,0.06);border:1px dashed rgba(255,255,255,0.12)" data-val="30s"></div></div>
+                <div class="bar-lbl">Static</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>⏱ Wait Time Reduction (%)</h3>
+            <div class="bar-chart">
+              <div class="bar-col">
+                <div class="bar-wrap"><div class="bar" style="height:4%;background:rgba(78,98,128,0.5)" data-val="0%"></div></div>
+                <div class="bar-lbl">↑ NB</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-wrap"><div class="bar" style="height:15%;background:linear-gradient(180deg,rgba(77,156,255,0.9),rgba(77,156,255,0.5))" data-val="6%"></div></div>
+                <div class="bar-lbl">→ EB</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-wrap"><div class="bar" style="height:100%;background:linear-gradient(180deg,rgba(0,255,179,0.9),rgba(0,255,179,0.5))" data-val="40%"></div></div>
+                <div class="bar-lbl">↓ SB</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-wrap"><div class="bar" style="height:33%;background:linear-gradient(180deg,rgba(255,170,0,0.9),rgba(255,170,0,0.5))" data-val="13%"></div></div>
+                <div class="bar-lbl">← WB</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ LIVE SIGNALS ══════════ -->
+      <div class="view" id="view-intersections">
+        <div class="section-title">⚡ Dynamic Signal Timer · Formula: G = B + (P × E)</div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
+          <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Base time (B)</div>
+              <input class="number-input" type="number" id="base-time" value="5" min="1" max="30" oninput="recalc()">
+              <span style="font-size:11px;color:var(--muted)">s</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Extra per PCU (E)</div>
+              <input class="number-input" type="number" id="extra-pcu" value="2" min="1" max="10" oninput="recalc()">
+              <span style="font-size:11px;color:var(--muted)">s</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">
+              Cycle: <span id="cycle-total" style="color:var(--accent);font-weight:700">141s</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+          <table class="pcu-table">
+            <thead>
+              <tr>
+                <th>Lane</th>
+                <th>🚗 Cars</th>
+                <th>🛵 Bikes</th>
+                <th>🚛 Trucks</th>
+                <th>Σ PCU</th>
+                <th>🟢 Green</th>
+                <th>Density</th>
+                <th>Signal</th>
+              </tr>
+            </thead>
+            <tbody id="signal-table">
+              <tr>
+                <td style="font-weight:600">↑ Northbound</td>
+                <td>10</td><td>0</td><td>5</td>
+                <td style="font-family:var(--mono);color:var(--accent);font-weight:600">25</td>
+                <td style="font-family:var(--mono);color:var(--accent);font-weight:600">55s</td>
+                <td><span class="badge high">Heavy</span></td>
+                <td><div class="sig-indicator"><div class="sig-dot" style="background:var(--accent);box-shadow:0 0 6px var(--accent)"></div><span style="color:var(--accent);font-size:11px">GREEN</span></div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">→ Eastbound</td>
+                <td>15</td><td>2</td><td>0</td>
+                <td style="font-family:var(--mono);color:var(--accent2);font-weight:600">16.5</td>
+                <td style="font-family:var(--mono);color:var(--accent2);font-weight:600">38s</td>
+                <td><span class="badge med">Moderate</span></td>
+                <td><div class="sig-indicator"><div class="sig-dot" style="background:var(--warn);box-shadow:0 0 6px var(--warn)"></div><span style="color:var(--warn);font-size:11px">YELLOW</span></div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">↓ Southbound</td>
+                <td>0</td><td>7</td><td>2</td>
+                <td style="font-family:var(--mono);color:var(--warn);font-weight:600">11.25</td>
+                <td style="font-family:var(--mono);color:var(--warn);font-weight:600">27s</td>
+                <td><span class="badge med">Moderate</span></td>
+                <td><div class="sig-indicator"><div class="sig-dot" style="background:var(--danger);box-shadow:0 0 6px var(--danger)"></div><span style="color:var(--danger);font-size:11px">RED</span></div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">← Westbound</td>
+                <td>8</td><td>0</td><td>0</td>
+                <td style="font-family:var(--mono);color:var(--purple);font-weight:600">8</td>
+                <td style="font-family:var(--mono);color:var(--purple);font-weight:600">21s</td>
+                <td><span class="badge low">Light</span></td>
+                <td><div class="sig-indicator"><div class="sig-dot" style="background:var(--danger);box-shadow:0 0 6px var(--danger)"></div><span style="color:var(--danger);font-size:11px">RED</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--muted);font-family:var(--mono)">
+          PCU weights · 🚗 Car = 1.0 · 🛵 Bike = 0.75 · 🚛 Truck/Bus = 3.0
+        </div>
+      </div>
+
+      <!-- ══════════ VEHICLE DETECTION ══════════ -->
+      <div class="view" id="view-vehicles">
+        <div class="metrics-grid" style="margin-bottom:20px">
+          <div class="metric-card blue">
+            <div class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#4D9CFF" stroke-width="1.6">
+                <rect x="2" y="7" width="14" height="7" rx="1.5"/><path d="M5 7V5a2 2 0 014 0v2M9 7V5a2 2 0 014 0v2"/><circle cx="5.5" cy="14" r="1.5"/><circle cx="12.5" cy="14" r="1.5"/>
+              </svg>
+            </div>
+            <div class="metric-label">Cars / Autos</div>
+            <div class="metric-val">33</div>
+            <div class="metric-sub">PCU weight: 1.0 each</div>
+          </div>
+          <div class="metric-card green">
+            <div class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#00FFB3" stroke-width="1.6">
+                <ellipse cx="9" cy="10" rx="5" ry="4"/><circle cx="9" cy="5" r="2"/><line x1="7" y1="14" x2="7" y2="17"/><line x1="11" y1="14" x2="11" y2="17"/>
+              </svg>
+            </div>
+            <div class="metric-label">Bikes / Scooters</div>
+            <div class="metric-val">9</div>
+            <div class="metric-sub">PCU weight: 0.75 each</div>
+          </div>
+          <div class="metric-card warn">
+            <div class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#FFAA00" stroke-width="1.6">
+                <rect x="1" y="6" width="16" height="8" rx="1.5"/><path d="M4 6V5a1 1 0 011-1h8a1 1 0 011 1v1"/><circle cx="4.5" cy="14" r="2"/><circle cx="13.5" cy="14" r="2"/>
+              </svg>
+            </div>
+            <div class="metric-label">Trucks / Buses</div>
+            <div class="metric-val">7</div>
+            <div class="metric-sub">PCU weight: 3.0 each</div>
+          </div>
+          <div class="metric-card" style="border-color:rgba(155,92,246,0.15)">
+            <div class="metric-icon" style="background:rgba(155,92,246,0.1)">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#9B5CF6" stroke-width="1.6">
+                <rect x="3" y="3" width="12" height="12" rx="2"/><path d="M7 9l2 2 4-4"/>
+              </svg>
+            </div>
+            <div class="metric-label">Detection Model</div>
+            <div class="metric-val" style="font-size:16px;margin-top:4px;color:var(--purple)">YOLOv4</div>
+            <div class="metric-sub">30 FPS · Real-time</div>
+          </div>
+        </div>
+
+        <div class="section-title">📷 CCTV Feed Status · Detection Detail</div>
+        <div class="veh-grid">
+          <!-- Feed 1 -->
+          <div class="feed-card">
+            <div class="feed-header">
+              <div>
+                <div class="feed-title">Feed 1 · Northbound</div>
+                <div class="feed-cam">📷 CCTV-NB-01 · IP: 192.168.1.11</div>
+              </div>
+              <span class="badge low">● Active</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(77,156,255,0.1)">🚗</div>
+              <span class="vtype-label">Cars</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:67%;background:var(--accent2)"></div></div>
+              <span class="vtype-count">10</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(0,255,179,0.1)">🛵</div>
+              <span class="vtype-label">Bikes</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:0%;background:var(--accent)"></div></div>
+              <span class="vtype-count">0</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(255,170,0,0.1)">🚛</div>
+              <span class="vtype-label">Trucks</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:33%;background:var(--warn)"></div></div>
+              <span class="vtype-count">5</span>
+            </div>
+            <div class="conf-wrap">
+              <svg class="conf-ring" viewBox="0 0 44 44" transform="rotate(-90 0 0)">
+                <circle cx="22" cy="22" r="17" stroke="#1C2535" stroke-width="5" fill="none"/>
+                <circle cx="22" cy="22" r="17" stroke="#00FFB3" stroke-width="5" fill="none"
+                  stroke-dasharray="93 107" stroke-dashoffset="0"/>
+              </svg>
+              <div>
+                <div class="conf-val">0.87</div>
+                <div class="conf-label">Avg Confidence</div>
+                <div class="centroid-tags">
+                  <span class="ctag">ID#12</span><span class="ctag">ID#15</span><span class="ctag">ID#17</span><span class="ctag">ID#21</span>
+                  <span class="ctag">+11 more</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feed 2 -->
+          <div class="feed-card">
+            <div class="feed-header">
+              <div>
+                <div class="feed-title">Feed 2 · Eastbound</div>
+                <div class="feed-cam">📷 CCTV-EB-01 · IP: 192.168.1.12</div>
+              </div>
+              <span class="badge low">● Active</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(77,156,255,0.1)">🚗</div>
+              <span class="vtype-label">Cars</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:88%;background:var(--accent2)"></div></div>
+              <span class="vtype-count">15</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(0,255,179,0.1)">🛵</div>
+              <span class="vtype-label">Bikes</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:12%;background:var(--accent)"></div></div>
+              <span class="vtype-count">2</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(255,170,0,0.1)">🚛</div>
+              <span class="vtype-label">Trucks</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:0%;background:var(--warn)"></div></div>
+              <span class="vtype-count">0</span>
+            </div>
+            <div class="conf-wrap">
+              <svg class="conf-ring" viewBox="0 0 44 44" transform="rotate(-90 0 0)">
+                <circle cx="22" cy="22" r="17" stroke="#1C2535" stroke-width="5" fill="none"/>
+                <circle cx="22" cy="22" r="17" stroke="#4D9CFF" stroke-width="5" fill="none"
+                  stroke-dasharray="88.7 107" stroke-dashoffset="0"/>
+              </svg>
+              <div>
+                <div class="conf-val" style="color:var(--accent2)">0.83</div>
+                <div class="conf-label">Avg Confidence</div>
+                <div class="centroid-tags">
+                  <span class="ctag">ID#03</span><span class="ctag">ID#07</span><span class="ctag">ID#09</span><span class="ctag">ID#14</span>
+                  <span class="ctag">+13 more</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feed 3 -->
+          <div class="feed-card">
+            <div class="feed-header">
+              <div>
+                <div class="feed-title">Feed 3 · Southbound</div>
+                <div class="feed-cam">📷 CCTV-SB-01 · IP: 192.168.1.13</div>
+              </div>
+              <span class="badge low">● Active</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(77,156,255,0.1)">🚗</div>
+              <span class="vtype-label">Cars</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:0%;background:var(--accent2)"></div></div>
+              <span class="vtype-count">0</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(0,255,179,0.1)">🛵</div>
+              <span class="vtype-label">Bikes</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:78%;background:var(--accent)"></div></div>
+              <span class="vtype-count">7</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(255,170,0,0.1)">🚛</div>
+              <span class="vtype-label">Trucks</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:22%;background:var(--warn)"></div></div>
+              <span class="vtype-count">2</span>
+            </div>
+            <div class="conf-wrap">
+              <svg class="conf-ring" viewBox="0 0 44 44" transform="rotate(-90 0 0)">
+                <circle cx="22" cy="22" r="17" stroke="#1C2535" stroke-width="5" fill="none"/>
+                <circle cx="22" cy="22" r="17" stroke="#FFAA00" stroke-width="5" fill="none"
+                  stroke-dasharray="84.2 107" stroke-dashoffset="0"/>
+              </svg>
+              <div>
+                <div class="conf-val" style="color:var(--warn)">0.79</div>
+                <div class="conf-label">Avg Confidence</div>
+                <div class="centroid-tags">
+                  <span class="ctag">ID#47⚠</span><span class="ctag">ID#48</span><span class="ctag">ID#49</span>
+                  <span class="ctag">+6 more</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feed 4 -->
+          <div class="feed-card">
+            <div class="feed-header">
+              <div>
+                <div class="feed-title">Feed 4 · Westbound</div>
+                <div class="feed-cam">📷 CCTV-WB-01 · IP: 192.168.1.14</div>
+              </div>
+              <span class="badge low">● Active</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(77,156,255,0.1)">🚗</div>
+              <span class="vtype-label">Cars</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:100%;background:var(--accent2)"></div></div>
+              <span class="vtype-count">8</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(0,255,179,0.1)">🛵</div>
+              <span class="vtype-label">Bikes</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:0%;background:var(--accent)"></div></div>
+              <span class="vtype-count">0</span>
+            </div>
+            <div class="vtype-row">
+              <div class="vtype-icon" style="background:rgba(255,170,0,0.1)">🚛</div>
+              <span class="vtype-label">Trucks</span>
+              <div class="vtype-bar"><div class="vtype-bar-fill" style="width:0%;background:var(--warn)"></div></div>
+              <span class="vtype-count">0</span>
+            </div>
+            <div class="conf-wrap">
+              <svg class="conf-ring" viewBox="0 0 44 44" transform="rotate(-90 0 0)">
+                <circle cx="22" cy="22" r="17" stroke="#1C2535" stroke-width="5" fill="none"/>
+                <circle cx="22" cy="22" r="17" stroke="#00FFB3" stroke-width="5" fill="none"
+                  stroke-dasharray="97.2 107" stroke-dashoffset="0"/>
+              </svg>
+              <div>
+                <div class="conf-val">0.91</div>
+                <div class="conf-label">Avg Confidence</div>
+                <div class="centroid-tags">
+                  <span class="ctag">ID#02</span><span class="ctag">ID#05</span><span class="ctag">ID#08</span><span class="ctag">ID#11</span>
+                  <span class="ctag">+4 more</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ ALERTS ══════════ -->
+      <div class="view" id="view-alerts">
+        <div class="section-title">🔔 System Notifications</div>
+        <div class="alert ok">
+          <div class="alert-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke-width="2"><path d="M2 8l4 4 8-8"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="alert-title">✅ All 4 camera feeds operational</div>
+            <div class="alert-body">📷 CCTV feeds for ↑NB, →EB, ↓SB, ←WB are streaming without interruption at 30 FPS.</div>
+          </div>
+          <div class="alert-time">Now</div>
+        </div>
+        <div class="alert warn">
+          <div class="alert-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke-width="2"><path d="M8 3v5M8 11v1"/><path d="M2 13L8 2l6 11H2z"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="alert-title">⚠ Northbound lane: Heavy congestion detected</div>
+            <div class="alert-body">🚛 PCU count reached 25. 🟢 Green time extended to 55s. Monitor for spillback beyond ROI boundary.</div>
+          </div>
+          <div class="alert-time">2 min ago</div>
+        </div>
+        <div class="alert info">
+          <div class="alert-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 7v5M8 5v1"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="alert-title">📉 Southbound wait time reduced 40%</div>
+            <div class="alert-body">Dynamic signal cut waiting time from 30s (static) → 18s (dynamic). Highest savings this cycle. 🎯</div>
+          </div>
+          <div class="alert-time">5 min ago</div>
+        </div>
+        <div class="alert warn">
+          <div class="alert-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke-width="2"><path d="M8 3v5M8 11v1"/><path d="M2 13L8 2l6 11H2z"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="alert-title">⚠ Occlusion detected in Feed 3 (SB)</div>
+            <div class="alert-body">🔍 Partial vehicle overlap near centroid ID #47. Detection confidence dropped to 0.61. Centroid tracking continues.</div>
+          </div>
+          <div class="alert-time">8 min ago</div>
+        </div>
+        <div class="alert info">
+          <div class="alert-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 7v5M8 5v1"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="alert-title">⏱ Total cycle time optimized</div>
+            <div class="alert-body">Cycle reduced from 120s (static) → 107s (dynamic). 🔥 10% overall efficiency improvement achieved this cycle.</div>
+          </div>
+          <div class="alert-time">12 min ago</div>
+        </div>
+        <div class="alert ok">
+          <div class="alert-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke-width="2"><path d="M2 8l4 4 8-8"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="alert-title">🤖 YOLO model loaded successfully</div>
+            <div class="alert-body">YOLOv4 weights initialized. Vehicle classes active: 🚗 Car · 🛵 Bike · 🚛 Truck/Bus · Auto. NMS threshold: 0.45.</div>
+          </div>
+          <div class="alert-time">18 min ago</div>
+        </div>
+      </div>
+
+      <!-- ══════════ SETTINGS ══════════ -->
+      <div class="view" id="view-settings">
+        <div class="settings-grid">
+          <div class="setting-group">
+            <h3>🎯 Detection Parameters</h3>
+            <div class="setting-row">
+              <div><div class="setting-name">Confidence threshold</div><div class="setting-desc">Min YOLO detection confidence</div></div>
+              <input class="number-input" type="number" value="0.60" min="0.1" max="1" step="0.05">
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">NMS threshold</div><div class="setting-desc">Non-maximum suppression</div></div>
+              <input class="number-input" type="number" value="0.45" min="0.1" max="1" step="0.05">
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Frame rate (FPS)</div><div class="setting-desc">Video processing rate</div></div>
+              <input class="number-input" type="number" value="30" min="10" max="60">
+            </div>
+          </div>
+          <div class="setting-group">
+            <h3>🟢 Signal Timing</h3>
+            <div class="setting-row">
+              <div><div class="setting-name">Base time (B)</div><div class="setting-desc">Minimum green duration</div></div>
+              <input class="number-input" type="number" value="5" min="1" max="30">
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Extra per PCU (E)</div><div class="setting-desc">Seconds added per PCU unit</div></div>
+              <input class="number-input" type="number" value="2" min="1" max="10">
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Max green cap</div><div class="setting-desc">Hard limit per lane (seconds)</div></div>
+              <input class="number-input" type="number" value="90" min="30" max="180">
+            </div>
+          </div>
+          <div class="setting-group">
+            <h3>⚙ System Features</h3>
+            <div class="setting-row">
+              <div><div class="setting-name">Centroid tracking</div><div class="setting-desc">Prevent duplicate vehicle counts</div></div>
+              <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">PCU weighting</div><div class="setting-desc">Weight by vehicle type</div></div>
+              <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Signal interconnection</div><div class="setting-desc">Coordinate adjacent lanes</div></div>
+              <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Dehazing filter</div><div class="setting-desc">Enhance visibility in poor weather</div></div>
+              <button class="toggle" onclick="this.classList.toggle('on')"></button>
+            </div>
+          </div>
+          <div class="setting-group">
+            <h3>🚗 PCU Weight Config</h3>
+            <div class="setting-row">
+              <div><div class="setting-name">🚗 Car / Auto</div></div>
+              <input class="number-input" type="number" value="1.0" step="0.25">
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">🛵 Bike / Scooter</div></div>
+              <input class="number-input" type="number" value="0.75" step="0.25">
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">🚛 Truck / Bus</div></div>
+              <input class="number-input" type="number" value="3.0" step="0.25">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════ LOGOUT ══ -->
+<div id="logout-page" class="page">
+  <div class="grid-bg"></div>
+  <div class="logout-card">
+    <div class="logout-icon">
+      <svg viewBox="0 0 28 28" fill="none" stroke-width="1.8"><path d="M10 5H5v18h5M18 19l5-5-5-5M23 14H10"/></svg>
+    </div>
+    <div class="logout-title">Sign out?</div>
+    <div class="logout-sub">You'll be logged out of the ATSM dashboard. All live monitoring sessions will be paused.</div>
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="goBack()">Stay signed in</button>
+      <button class="btn-primary" onclick="doLogout()">Yes, sign out</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function doLogin(){
+  var u=document.getElementById('uid').value;
+  var p=document.getElementById('pwd').value;
+  var err=document.getElementById('login-err');
+  if(u==='admin'&&p==='1234'){err.style.display='none';showPage('app-page');}
+  else{err.style.display='block';}
+}
+function showLogout(){showPage('logout-page')}
+function goBack(){showPage('app-page')}
+function doLogout(){showPage('login-page');document.getElementById('uid').value='admin';document.getElementById('pwd').value='';}
+
+var viewTitles={
+  'overview':['System Overview','Real-time adaptive signal management'],
+  'intersections':['Live Signals','Dynamic green timer control'],
+  'vehicles':['Vehicle Detection','YOLO-based real-time classification'],
+  'alerts':['Alerts & Notifications','System events and warnings'],
+  'settings':['Configuration','Detection and timing parameters']
+};
+function showView(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  var t=viewTitles[id];
+  document.getElementById('view-title').textContent=t[0];
+  document.getElementById('view-sub').textContent=t[1];
+}
+
+function recalc(){
+  var B=parseFloat(document.getElementById('base-time').value)||5;
+  var E=parseFloat(document.getElementById('extra-pcu').value)||2;
+  var lanes=[
+    {name:'↑ Northbound',cars:10,bikes:0,trucks:5,signal:'GREEN',sigCol:'var(--accent)'},
+    {name:'→ Eastbound',cars:15,bikes:2,trucks:0,signal:'YELLOW',sigCol:'var(--warn)'},
+    {name:'↓ Southbound',cars:0,bikes:7,trucks:2,signal:'RED',sigCol:'var(--danger)'},
+    {name:'← Westbound',cars:8,bikes:0,trucks:0,signal:'RED',sigCol:'var(--danger)'}
+  ];
+  var densities=['Heavy','Moderate','Moderate','Light'];
+  var bColors=['var(--accent)','var(--accent2)','var(--warn)','var(--purple)'];
+  var total=0;
+  var tbody=document.getElementById('signal-table');
+  tbody.innerHTML='';
+  lanes.forEach(function(l,i){
+    var pcu=l.cars*1+l.bikes*0.75+l.trucks*3;
+    var g=Math.round(B+(pcu*E));
+    total+=g;
+    var d=densities[i];
+    var dc=d==='Heavy'?'high':d==='Moderate'?'med':'low';
+    var sigDot=`<div style="width:10px;height:10px;border-radius:50%;background:${l.sigCol};box-shadow:0 0 6px ${l.sigCol};display:inline-block;margin-right:6px"></div>`;
+    tbody.innerHTML+=`<tr>
+      <td style="font-weight:600">${l.name}</td>
+      <td>${l.cars}</td><td>${l.bikes}</td><td>${l.trucks}</td>
+      <td style="font-family:var(--mono);color:${bColors[i]};font-weight:600">${pcu}</td>
+      <td style="font-family:var(--mono);color:${bColors[i]};font-weight:600">${g}s</td>
+      <td><span class="badge ${dc}">${d}</span></td>
+      <td><div style="display:flex;align-items:center">${sigDot}<span style="font-size:11px;color:${l.sigCol};font-family:var(--mono)">${l.signal}</span></div></td>
+    </tr>`;
+  });
+  document.getElementById('cycle-total').textContent=total+'s';
+}
+
+document.getElementById('uid').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
+document.getElementById('pwd').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
+</script>
+</body>
+</html>
